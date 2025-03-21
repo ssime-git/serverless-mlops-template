@@ -1,0 +1,16 @@
+2025-03-21 14:59:32,044 - __main__ - INFO - Starting prediction...
+2025-03-21 14:59:32,044 - __main__ - INFO - Setting MLflow tracking URI to: http://mlflow:5000
+2025-03-21 14:59:32,044 - __main__ - INFO - Features: [5.1, 3.5, 1.4, 0.2]
+2025-03-21 14:59:32,044 - __main__ - INFO - Predicting with model: iris_model (version: latest)
+2025-03-21 14:59:32,044 - __main__ - INFO - Loading model from: models:/iris_model/latest
+2025-03-21 14:59:33,467 - __main__ - INFO - Model loaded successfully from registry
+2025-03-21 14:59:33,467 - __main__ - INFO - Preparing input features from: <class 'list'>
+2025-03-21 14:59:33,467 - __main__ - INFO - Features as list: [5.1, 3.5, 1.4, 0.2]
+2025-03-21 14:59:33,468 - __main__ - INFO - Converted to 2D array: [[5.1 3.5 1.4 0.2]]
+2025-03-21 14:59:33,468 - __main__ - INFO - Making prediction...
+2025-03-21 14:59:33,472 - __main__ - INFO - Prediction made successfully
+/app/predict.py:206: FutureWarning: ``mlflow.tracking.client.MlflowClient.get_latest_versions`` is deprecated since 2.9.0. Model registry stages will be removed in a future major release. To learn more about the deprecation of model registry stages, see our migration guide here: https://mlflow.org/docs/latest/model-registry.html#migrating-from-stages
+  model_versions = client.get_latest_versions(model_name)
+2025-03-21 14:59:33,503 - __main__ - INFO - Prediction result: {'prediction': 0, 'class_name': 'setosa', 'prediction_time': 1.4593837261199951}
+{"prediction": 0, "class_name": "setosa", "prediction_time": 1.4593837261199951}
+{"prediction": 0, "class_name": "setosa", "prediction_time": 1.4593837261199951}

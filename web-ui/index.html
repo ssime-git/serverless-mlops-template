@@ -126,100 +126,108 @@
 
     <script>
         document.getElementById('train-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const maxDepthInput = document.getElementById('max-depth').value;
-            // Ensure proper decimal format with period, not comma
-            const testSizeInput = document.getElementById('test-size').value.replace(',', '.');
-            
-            const params = {
-                n_estimators: parseInt(document.getElementById('n-estimators').value),
-                max_depth: maxDepthInput ? parseInt(maxDepthInput) : null,
-                test_size: parseFloat(testSizeInput),
-                random_state: 42
-            };
-            
-            const resultElement = document.getElementById('train-result');
-            const timeElement = document.getElementById('train-time');
-            
-            resultElement.textContent = 'Creating container and training model...';
-            resultElement.classList.add('loading');
-            timeElement.textContent = '';
-            
-            try {
-                const startTime = Date.now();
-                const response = await fetch('/invoke', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        function: 'train',
-                        params: params
-                    })
-                });
-                
-                const result = await response.json();
-                const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
-                
-                if (result.status === 'success') {
-                    resultElement.textContent = JSON.stringify(result.data, null, 2);
-                    timeElement.textContent = `Container execution time: ${totalTime}s`;
-                } else {
-                    resultElement.textContent = `Error: ${result.error}`;
-                    timeElement.textContent = `Failed after ${totalTime}s`;
-                }
-            } catch (error) {
-                resultElement.textContent = `Error: ${error.message}`;
-                timeElement.textContent = 'Request failed';
-            }
-            
-            resultElement.classList.remove('loading');
+    e.preventDefault();
+    
+    const maxDepthInput = document.getElementById('max-depth').value;
+    // Ensure proper decimal format with period, not comma
+    const testSizeInput = document.getElementById('test-size').value.replace(',', '.');
+    
+    const params = {
+        n_estimators: parseInt(document.getElementById('n-estimators').value),
+        max_depth: maxDepthInput ? parseInt(maxDepthInput) : null,
+        test_size: parseFloat(testSizeInput),
+        random_state: 42
+    };
+    
+    const resultElement = document.getElementById('train-result');
+    const timeElement = document.getElementById('train-time');
+    
+    resultElement.textContent = 'Creating container and training model...';
+    resultElement.classList.add('loading');
+    timeElement.textContent = '';
+    
+    try {
+        const startTime = Date.now();
+        const response = await fetch('/invoke', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                function: 'train',
+                params: params
+            })
         });
         
-        document.getElementById('predict-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const features = [
-                parseFloat(document.getElementById('sepal-length').value),
-                parseFloat(document.getElementById('sepal-width').value),
-                parseFloat(document.getElementById('petal-length').value),
-                parseFloat(document.getElementById('petal-width').value)
-            ];
-            
-            const resultElement = document.getElementById('predict-result');
-            const timeElement = document.getElementById('predict-time');
-            
-            resultElement.textContent = 'Creating container and making prediction...';
-            resultElement.classList.add('loading');
-            timeElement.textContent = '';
-            
-            try {
-                const startTime = Date.now();
-                const response = await fetch('/invoke', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        function: 'predict',
-                        params: features
-                    })
-                });
-                
-                const result = await response.json();
-                const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
-                
-                if (result.status === 'success') {
-                    resultElement.textContent = JSON.stringify(result.data, null, 2);
-                    timeElement.textContent = `Container execution time: ${totalTime}s`;
-                } else {
-                    resultElement.textContent = `Error: ${result.error}`;
-                    timeElement.textContent = `Failed after ${totalTime}s`;
-                }
-            } catch (error) {
-                resultElement.textContent = `Error: ${error.message}`;
-                timeElement.textContent = 'Request failed';
-            }
-            
-            resultElement.classList.remove('loading');
+        const result = await response.json();
+        const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+        
+        console.log("Train response:", result); // Debug output
+        
+        if (result.status === 'success') {
+            // Fix: Check for data property or use result directly
+            const resultData = result.data || result;
+            resultElement.textContent = JSON.stringify(resultData, null, 2);
+            timeElement.textContent = `Container execution time: ${totalTime}s`;
+        } else {
+            resultElement.textContent = `Error: ${result.error || JSON.stringify(result)}`;
+            timeElement.textContent = `Failed after ${totalTime}s`;
+        }
+    } catch (error) {
+        resultElement.textContent = `Error: ${error.message}`;
+        timeElement.textContent = 'Request failed';
+    }
+    
+    resultElement.classList.remove('loading');
+});
+
+document.getElementById('predict-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const features = [
+        parseFloat(document.getElementById('sepal-length').value),
+        parseFloat(document.getElementById('sepal-width').value),
+        parseFloat(document.getElementById('petal-length').value),
+        parseFloat(document.getElementById('petal-width').value)
+    ];
+    
+    const resultElement = document.getElementById('predict-result');
+    const timeElement = document.getElementById('predict-time');
+    
+    resultElement.textContent = 'Creating container and making prediction...';
+    resultElement.classList.add('loading');
+    timeElement.textContent = '';
+    
+    try {
+        const startTime = Date.now();
+        const response = await fetch('/invoke', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                function: 'predict',
+                params: features
+            })
         });
+        
+        const result = await response.json();
+        const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+        
+        console.log("Predict response:", result); // Debug output
+        
+        if (result.status === 'success') {
+            // Fix: Check for data property or use result directly
+            const resultData = result.data || result;
+            resultElement.textContent = JSON.stringify(resultData, null, 2);
+            timeElement.textContent = `Container execution time: ${totalTime}s`;
+        } else {
+            resultElement.textContent = `Error: ${result.error || JSON.stringify(result)}`;
+            timeElement.textContent = `Failed after ${totalTime}s`;
+        }
+    } catch (error) {
+        resultElement.textContent = `Error: ${error.message}`;
+        timeElement.textContent = 'Request failed';
+    }
+    
+    resultElement.classList.remove('loading');
+});
     </script>
 </body>
 </html>

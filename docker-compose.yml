@@ -7,10 +7,11 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./functions:/app/functions
       - ./logs:/app/logs
-      - ./mlflow_data:/mlflow
+      - mlflow_volume:/mlflow
     environment:
       - PYTHONUNBUFFERED=1
       - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_ARTIFACTS_DIR=/mlflow/artifacts
     depends_on:
       - mlflow
     restart: always
@@ -20,12 +21,12 @@ services:
     ports:
       - "5001:5000"
     volumes:
-      - ./mlflow_data:/mlflow
+      - mlflow_volume:/mlflow
     command: >
       bash -c "
       mkdir -p /mlflow/artifacts &&
       chmod -R 777 /mlflow &&
-      mlflow server --host 0.0.0.0 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
+      mlflow server --host 0.0.0.0 --backend-store-uri sqlite:///mlflow/mlflow.db
       "
     environment:
       - MLFLOW_TRACKING_URI=http://localhost:5000
@@ -43,5 +44,5 @@ services:
     restart: always
 
 volumes:
-  mlflow_data:
+  mlflow_volume:
     driver: local

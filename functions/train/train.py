@@ -61,8 +61,15 @@ def train_model():
     
     logger.info("Split data into training and testing sets")
     
+    # Set the artifact location explicitly
+    os.environ['MLFLOW_ARTIFACT_LOCATION'] = '/mlflow/artifacts'
+
     # Start an MLflow run
     with mlflow.start_run() as run:
+
+         # Add this line at the beginning
+        logger.info(f"MLflow artifact URI: {mlflow.get_artifact_uri()}")
+
         # Log parameters
         mlflow.log_param("n_estimators", n_estimators)
         mlflow.log_param("max_depth", max_depth)
@@ -104,6 +111,19 @@ def train_model():
         )
         
         logger.info("Logged model to MLflow")
+
+        # debugging lines
+        # After logging the model
+        logger.info(f"Logged model to MLflow. Artifact URI: {mlflow.get_artifact_uri()}")
+        
+        # Add these debug lines
+        try:
+            logger.info(f"Checking artifacts at run ID: {run.info.run_id}")
+            import subprocess
+            result = subprocess.run(['find', '/mlflow', '-type', 'd'], capture_output=True, text=True)
+            logger.info(f"Directory structure under /mlflow:\n{result.stdout}")
+        except Exception as e:
+            logger.error(f"Debug error: {e}")
         
         # Log feature names and target names as artifacts
         with open("feature_names.json", "w") as f:

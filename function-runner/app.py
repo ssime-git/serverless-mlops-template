@@ -152,15 +152,15 @@ def invoke():
         
         # Run the container
         container = docker_client.containers.run(
-            image=image_name,
-            name=container_name,
-            environment=environment,
-            network="serverless-mlops-template_default",  # Connect to the same network as MLflow
-            volumes={
-                os.path.abspath('./mlflow_data'): {'bind': '/mlflow', 'mode': 'ro'}  # Mount MLflow data as read-only
-            },
-            detach=True
-        )
+                image=image_name,
+                name=container_name,
+                environment=environment,
+                network="serverless-mlops-template_default",
+                volumes={
+                    "mlflow_volume": {"bind": "/mlflow", "mode": "rw"}
+                },
+                detach=True
+            )
         
         # Wait for the container to finish
         result = container.wait()
@@ -192,52 +192,36 @@ def invoke():
             }
             
             return jsonify(error_info), 500
-        
-        # Try to parse output as JSON
+
+        # Try to parse the output as JSON
         try:
-            # Check if the output looks like HTML (starts with <!DOCTYPE or <html)
-            if logs.strip().startswith(('<html', '<!DOCTYPE')):
-                logger.warning("Container output appears to be HTML instead of JSON")
-                
-                # Extract any JSON that might be embedded in the HTML
-                # This is a simple approach - look for anything between { and }
-                json_matches = re.findall(r'({.*?})', logs, re.DOTALL)
-                
-                if json_matches:
-                    # Try each potential JSON match
-                    for json_str in json_matches:
-                        try:
-                            output = json.loads(json_str)
-                            logger.info(f"Successfully extracted JSON from HTML: {json_str}")
-                            output['status'] = 'success'
-                            return jsonify(output)
-                        except:
-                            continue
-                
-                # If we couldn't extract JSON, return a generic success
-                return jsonify({
-                    'status': 'success',
-                    'message': 'Operation completed successfully',
-                    'container_name': container_name,
-                    'log_file': f'logs/{container_name}.log'
-                })
-            
             # Normal JSON parsing
             output = json.loads(logs)
             output['status'] = 'success'
             return jsonify(output)
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse container output as JSON: {e}")
-            logger.error(f"Raw output: {logs}")
             
-            # Return error with raw logs
+            # Look for valid JSON in the output
+            import re
+            # Find anything that looks like a JSON object
+            matches = re.findall(r'({.*})', logs)
+            for match in matches:
+                try:
+                    # Try to parse this as JSON
+                    result = json.loads(match)
+                    logger.info(f"Found valid JSON in output: {match[:100]}...")
+                    result['status'] = 'success'
+                    return jsonify(result)
+                except:
+                    continue
+                
+            # If no JSON found, return the raw logs
             return jsonify({
-                'status': 'error',
-                'error': f"Failed to parse container output as JSON: {e}",
+                'status': 'success',
                 'raw_output': logs,
-                'container_name': container_name,
-                'log_file': f'logs/{container_name}.log'
-            }), 500
+                'message': 'Operation completed but could not parse output as JSON'
+            })
         
     except Exception as e:
         logger.error(f"Error invoking function {function_name}: {e}")

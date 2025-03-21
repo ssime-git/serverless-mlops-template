@@ -252,7 +252,7 @@ def format_prediction_result(prediction, class_names, start_time):
 if __name__ == '__main__':
     try:
         result, exit_code = predict()
-        print(json.dumps(result))
+        
         sys.exit(exit_code)
     except Exception as e:
         print(json.dumps({"error": str(e)}))

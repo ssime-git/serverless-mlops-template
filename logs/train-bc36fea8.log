@@ -1,0 +1,37 @@
+2025-03-21 14:59:11,434 - __main__ - INFO - Starting model training...
+2025-03-21 14:59:11,434 - __main__ - INFO - Setting MLflow tracking URI to: http://mlflow:5000
+2025-03-21 14:59:11,459 - __main__ - INFO - Created new experiment: iris_classification with ID: 1
+2025-03-21 14:59:11,465 - __main__ - INFO - Parameters: n_estimators=100, max_depth=None, test_size=0.2
+2025-03-21 14:59:11,468 - __main__ - INFO - Loaded Iris dataset
+2025-03-21 14:59:11,469 - __main__ - INFO - Split data into training and testing sets
+2025/03/21 14:59:11 WARNING mlflow.utils.git_utils: Failed to import Git (the Git executable is probably not on your PATH), so Git SHA is not available. Error: Failed to initialize: Bad git executable.
+The git executable must be specified in one of the following ways:
+    - be included in your $PATH
+    - be set via $GIT_PYTHON_GIT_EXECUTABLE
+    - explicitly set via git.refresh(<full-path-to-git-executable>)
+
+All git commands will error until this is rectified.
+
+This initial message can be silenced or aggravated in the future by setting the
+$GIT_PYTHON_REFRESH environment variable. Use one of the following values:
+    - quiet|q|silence|s|silent|none|n|0: for no message or exception
+    - warn|w|warning|log|l|1: for a warning message (logging level CRITICAL, displayed by default)
+    - error|e|exception|raise|r|2: for a raised exception
+
+Example:
+    export GIT_PYTHON_REFRESH=quiet
+
+2025-03-21 14:59:11,703 - __main__ - INFO - Logged parameters to MLflow
+2025-03-21 14:59:11,775 - __main__ - INFO - Trained model
+2025-03-21 14:59:11,783 - __main__ - INFO - Evaluated model
+2025-03-21 14:59:11,806 - __main__ - INFO - Logged metrics to MLflow
+2025/03/21 14:59:14 WARNING mlflow.utils.environment: Failed to resolve installed pip version. ``pip`` will be added to conda.yaml environment spec without a version specifier.
+Successfully registered model 'iris_model'.
+2025/03/21 14:59:14 INFO mlflow.store.model_registry.abstract_store: Waiting up to 300 seconds for model version to finish creation. Model name: iris_model, version 1
+Created version '1' of model 'iris_model'.
+2025-03-21 14:59:14,485 - __main__ - INFO - Logged model to MLflow
+2025-03-21 14:59:14,491 - __main__ - INFO - Logged feature names and target names as artifacts
+2025-03-21 14:59:14,491 - __main__ - INFO - Returning results as JSON
+{"run_id": "7dcabd9fc0b9434c8d624ead5bdd7db4", "experiment_id": "1", "model_uri": "runs:/7dcabd9fc0b9434c8d624ead5bdd7db4/model", "metrics": {"train_accuracy": 1.0, "test_accuracy": 1.0, "training_time": 3.0566608905792236}, "parameters": {"n_estimators": 100, "max_depth": null, "test_size": 0.2}}
+🏃 View run polite-robin-781 at: http://mlflow:5000/#/experiments/1/runs/7dcabd9fc0b9434c8d624ead5bdd7db4
+🧪 View experiment at: http://mlflow:5000/#/experiments/1
