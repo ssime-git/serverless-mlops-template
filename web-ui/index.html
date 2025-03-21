@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Serverless MLOps</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; }
+        .result-box { min-height: 150px; background-color: #f8f9fa; padding: 15px; border-radius: 5px; font-family: monospace; }
+        .loading { color: #6c757d; }
+        .exec-time { font-size: 0.8em; color: #6c757d; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="text-center mb-4">
+            <h1>Docker Serverless MLOps</h1>
+            <p class="lead">True serverless execution with dynamic containers</p>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Train Model Function</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="train-form">
+                            <div class="mb-3">
+                                <label class="form-label">Number of Estimators</label>
+                                <input type="number" class="form-control" id="n-estimators" value="100" min="10" max="1000">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Max Depth (empty for None)</label>
+                                <input type="number" class="form-control" id="max-depth" min="1" max="20">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Test Size</label>
+                                <input type="text" class="form-control" id="test-size" value="0.2" placeholder="0.2">
+                                <small class="form-text text-muted">Use a decimal point (e.g., 0.2), not a comma.</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Train Model</button>
+                        </form>
+                        
+                        <div class="mt-3">
+                            <h6>Result:</h6>
+                            <div id="train-time" class="exec-time mb-1"></div>
+                            <pre class="result-box" id="train-result">No training has been run yet.</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Predict Function</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Enter Iris features:</p>
+                        <form id="predict-form">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Sepal Length (cm)</label>
+                                    <input type="number" class="form-control" id="sepal-length" value="5.1" step="0.1">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Sepal Width (cm)</label>
+                                    <input type="number" class="form-control" id="sepal-width" value="3.5" step="0.1">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Petal Length (cm)</label>
+                                    <input type="number" class="form-control" id="petal-length" value="1.4" step="0.1">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Petal Width (cm)</label>
+                                    <input type="number" class="form-control" id="petal-width" value="0.2" step="0.1">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success">Make Prediction</button>
+                        </form>
+                        
+                        <div class="mt-3">
+                            <h6>Result:</h6>
+                            <div id="predict-time" class="exec-time mb-1"></div>
+                            <pre class="result-box" id="predict-result">No prediction has been made yet.</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Serverless Execution Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            This system creates and destroys Docker containers for each function execution.
+                            Every time you train a model or make a prediction:
+                        </p>
+                        <ol>
+                            <li>A new container is created</li>
+                            <li>The code runs inside an isolated environment</li>
+                            <li>Results are returned</li>
+                            <li>The container is destroyed</li>
+                        </ol>
+                        <p>
+                            This mimics true serverless behavior where resources are provisioned on-demand 
+                            and released after execution.
+                        </p>
+                        <div class="mt-3">
+                            <a href="/debug" target="_blank" class="btn btn-outline-secondary">View Debug Information</a>
+                            <a href="/mlflow" target="_blank" class="btn btn-outline-primary">Open MLflow UI</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('train-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const maxDepthInput = document.getElementById('max-depth').value;
+            // Ensure proper decimal format with period, not comma
+            const testSizeInput = document.getElementById('test-size').value.replace(',', '.');
+            
+            const params = {
+                n_estimators: parseInt(document.getElementById('n-estimators').value),
+                max_depth: maxDepthInput ? parseInt(maxDepthInput) : null,
+                test_size: parseFloat(testSizeInput),
+                random_state: 42
+            };
+            
+            const resultElement = document.getElementById('train-result');
+            const timeElement = document.getElementById('train-time');
+            
+            resultElement.textContent = 'Creating container and training model...';
+            resultElement.classList.add('loading');
+            timeElement.textContent = '';
+            
+            try {
+                const startTime = Date.now();
+                const response = await fetch('/invoke', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        function: 'train',
+                        params: params
+                    })
+                });
+                
+                const result = await response.json();
+                const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                
+                if (result.status === 'success') {
+                    resultElement.textContent = JSON.stringify(result.data, null, 2);
+                    timeElement.textContent = `Container execution time: ${totalTime}s`;
+                } else {
+                    resultElement.textContent = `Error: ${result.error}`;
+                    timeElement.textContent = `Failed after ${totalTime}s`;
+                }
+            } catch (error) {
+                resultElement.textContent = `Error: ${error.message}`;
+                timeElement.textContent = 'Request failed';
+            }
+            
+            resultElement.classList.remove('loading');
+        });
+        
+        document.getElementById('predict-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const features = [
+                parseFloat(document.getElementById('sepal-length').value),
+                parseFloat(document.getElementById('sepal-width').value),
+                parseFloat(document.getElementById('petal-length').value),
+                parseFloat(document.getElementById('petal-width').value)
+            ];
+            
+            const resultElement = document.getElementById('predict-result');
+            const timeElement = document.getElementById('predict-time');
+            
+            resultElement.textContent = 'Creating container and making prediction...';
+            resultElement.classList.add('loading');
+            timeElement.textContent = '';
+            
+            try {
+                const startTime = Date.now();
+                const response = await fetch('/invoke', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        function: 'predict',
+                        params: features
+                    })
+                });
+                
+                const result = await response.json();
+                const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                
+                if (result.status === 'success') {
+                    resultElement.textContent = JSON.stringify(result.data, null, 2);
+                    timeElement.textContent = `Container execution time: ${totalTime}s`;
+                } else {
+                    resultElement.textContent = `Error: ${result.error}`;
+                    timeElement.textContent = `Failed after ${totalTime}s`;
+                }
+            } catch (error) {
+                resultElement.textContent = `Error: ${error.message}`;
+                timeElement.textContent = 'Request failed';
+            }
+            
+            resultElement.classList.remove('loading');
+        });
+    </script>
+</body>
+</html>

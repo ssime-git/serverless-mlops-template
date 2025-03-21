@@ -1,0 +1,47 @@
+services:
+  function-runner:
+    build: ./function-runner
+    ports:
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./functions:/app/functions
+      - ./logs:/app/logs
+      - ./mlflow_data:/mlflow
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    depends_on:
+      - mlflow
+    restart: always
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.10.0
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./mlflow_data:/mlflow
+    command: >
+      bash -c "
+      mkdir -p /mlflow/artifacts &&
+      chmod -R 777 /mlflow &&
+      mlflow server --host 0.0.0.0 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
+      "
+    environment:
+      - MLFLOW_TRACKING_URI=http://localhost:5000
+    restart: always
+
+  web-ui:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./web-ui:/usr/share/nginx/html
+      - ./web-ui/conf/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - function-runner
+    restart: always
+
+volumes:
+  mlflow_data:
+    driver: local
